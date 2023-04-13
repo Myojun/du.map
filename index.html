@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>DU-Map</title>
+    <style>
+#mapwrap{position:relative;overflow:hidden;}
+.category, .category *{margin:0;padding:0;color:#000;}   
+.category {position:absolute;overflow:hidden;top:10px;left:10px;width: 100px;px;height:50px;z-index:10;border:1px solid black;font-family:'Malgun Gothic','맑은 고딕',sans-serif;font-size:12px;text-align:center;background-color:#fff;}
+.category .menu_selected {background:#FF5F4A;color:#fff;border-left:1px solid #915B2F;border-right:1px solid #915B2F;margin:0 -1px;} 
+.category li{list-style:none;float:left;width:50px;height:45px;padding-top:5px;cursor:pointer;} 
+.category .ico_comm {display:block;margin:0 auto 2px;width:22px;height:26px;background:url('https://cdn.discordapp.com/attachments/1096020225092227074/1096036317390962778/icon.png') no-repeat;} 
+.category .ico_trashbin {background-position:-10px 0;}  
+.category .ico_smokingarea {background-position:-10px -36px;}     
+</style>
+</head>
+<body>
+<div id="mapwrap"> 
+    <!-- 지도가 표시될 div -->
+    <div id="map" style="width: 95%;height: 800px;px;"></div>
+    <!-- 지도 위에 표시될 마커 카테고리 -->
+    <div class="category">
+        <ul>
+            <li id="trashbinMenu" onclick="changeMarker('trashbin')">
+                <span class="ico_comm ico_trashbin"></span>
+                쓰레기통
+            </li>
+            <li id="smokingareaMenu" onclick="changeMarker('smokingarea')">
+                <span class="ico_comm ico_smokingarea"></span>
+                흡연장
+            </li>
+        </ul>
+    </div>
+</div>
+
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=3379d9e3e5dce67697b68f95328e78bd"></script>
+<script>
+var mapContainer = document.getElementById('map'), // 지도를 표시할 div  
+    mapOption = { 
+        center: new kakao.maps.LatLng(35.9015, 128.8504), // 지도의 중심좌표 
+        level: 2 // 지도의 확대 레벨 
+    }; 
+
+var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
+
+// 쓰레기통 마커가 표시될 좌표 배열입니다
+var trashbinPositions = [ 
+    new kakao.maps.LatLng(35.8997337734382, 128.8543817675971),
+                 
+];
+
+// 흡연장 마커가 표시될 좌표 배열입니다
+var smokingareaPositions = [
+    new kakao.maps.LatLng(35.8997337734382, 128.8543817675971),
+    
+]; 
+
+var markerImageSrc = 'https://cdn.discordapp.com/attachments/1096020225092227074/1096036317390962778/icon.png';  // 마커이미지의 주소입니다. 스프라이트 이미지 입니다
+    trashbinMarkers = [], // 쓰레기통 마커 객체를 가지고 있을 배열입니다
+    smokingareaMarkers = [], // 흡연장 마커 객체를 가지고 있을 배열입니다
+    
+createtrashbinMarkers(); // 쓰레기통 마커를 생성하고 쓰레기통 마커 배열에 추가합니다
+createsmokingareaMarkers(); // 흡연장 마커를 생성하고 흡연장 마커 배열에 추가합니다
+
+changeMarker('trashbin'); // 지도에 쓰레기통 마커가 보이도록 설정합니다    
+
+
+// 마커이미지의 주소와, 크기, 옵션으로 마커 이미지를 생성하여 리턴하는 함수입니다
+function createMarkerImage(src, size, options) {
+    var markerImage = new kakao.maps.MarkerImage(src, size, options);
+    return markerImage;            
+}
+
+// 좌표와 마커이미지를 받아 마커를 생성하여 리턴하는 함수입니다
+function createMarker(position, image) {
+    var marker = new kakao.maps.Marker({
+        position: position,
+        image: image
+    });
+    
+    return marker;  
+}   
+   
+// 쓰레기통 마커를 생성하고 쓰레기통 마커 배열에 추가하는 함수입니다
+function createtrashbinMarkers() {
+    
+    for (var i = 0; i < trashbinPositions.length; i++) {  
+        
+        var imageSize = new kakao.maps.Size(22, 26),
+            imageOptions = {  
+                spriteOrigin: new kakao.maps.Point(10, 0),    
+                spriteSize: new kakao.maps.Size(36, 98)  
+            };     
+        
+        // 마커이미지와 마커를 생성합니다
+        var markerImage = createMarkerImage(markerImageSrc, imageSize, imageOptions),    
+            marker = createMarker(trashbinPositions[i], markerImage);  
+        
+        // 생성된 마커를 쓰레기통 마커 배열에 추가합니다
+        trashbinMarkers.push(marker);
+    }     
+}
+
+// 쓰레기통 마커들의 지도 표시 여부를 설정하는 함수입니다
+function settrashbinMarkers(map) {        
+    for (var i = 0; i < trashbinMarkers.length; i++) {  
+        trashbinMarkers[i].setMap(map);
+    }        
+}
+
+// 흡연장 마커를 생성하고 흡연장 마커 배열에 추가하는 함수입니다
+function createsmokingareaMarkers() {
+    for (var i = 0; i < smokingareaPositions.length; i++) {
+        
+        var imageSize = new kakao.maps.Size(22, 26),
+            imageOptions = {   
+                spriteOrigin: new kakao.maps.Point(10, 36),    
+                spriteSize: new kakao.maps.Size(36, 98)  
+            };       
+     
+        // 마커이미지와 마커를 생성합니다
+        var markerImage = createMarkerImage(markerImageSrc, imageSize, imageOptions),    
+            marker = createMarker(smokingareaPositions[i], markerImage);  
+
+        // 생성된 마커를 흡연장 마커 배열에 추가합니다
+        smokingareaMarkers.push(marker);    
+    }        
+}
+
+// 흡연장 마커들의 지도 표시 여부를 설정하는 함수입니다
+function setsmokingareaMarkers(map) {        
+    for (var i = 0; i < smokingareaMarkers.length; i++) {  
+        smokingareaMarkers[i].setMap(map);
+    }        
+}
+
+// 카테고리를 클릭했을 때 type에 따라 카테고리의 스타일과 지도에 표시되는 마커를 변경합니다
+function changeMarker(type){
+    
+    var trashbinMenu = document.getElementById('trashbinMenu');
+    var smokingareaMenu = document.getElementById('smokingareaMenu');
+    
+    // 쓰레기통 카테고리가 클릭됐을 때
+    if (type === 'trashbin') {
+    
+        // 쓰레기통 카테고리를 선택된 스타일로 변경하고
+        trashbinMenu.className = 'menu_selected';
+        
+        // 흡연장은 선택되지 않은 스타일로 바꿉니다
+        smokingareaMenu.className = '';
+        
+        // 쓰레기통 마커들만 지도에 표시하도록 설정합니다
+        settrashbinMarkers(map);
+        setsmokingareaMarkers(null);
+        
+    } else if (type === 'smokingarea') { // 흡연장 카테고리가 클릭됐을 때
+    
+        // 흡연장 카테고리를 선택된 스타일로 변경하고
+        trashbinMenu.className = '';
+        smokingareaMenu.className = 'menu_selected';
+        
+        // 흡연장 마커들만 지도에 표시하도록 설정합니다
+        settrashbinMarkers(null);
+        setsmokingareaMarkers(map); 
+    }    
+    // HTML5의 geolocation으로 사용할 수 있는지 확인합니다 
+if (navigator.geolocation) {
+    
+    // GeoLocation을 이용해서 접속 위치를 얻어옵니다
+    navigator.geolocation.getCurrentPosition(function(position) {
+        
+        var lat = position.coords.latitude, // 위도
+            lon = position.coords.longitude; // 경도
+        
+        var locPosition = new kakao.maps.LatLng(lat, lon), // 마커가 표시될 위치를 geolocation으로 얻어온 좌표로 생성합니다
+            message = '<div style="padding:5px;">현재 위치</div>'; // 인포윈도우에 표시될 내용입니다
+        
+        // 마커와 인포윈도우를 표시합니다
+        displayMarker(locPosition, message);
+            
+      });
+    
+} else { // HTML5의 GeoLocation을 사용할 수 없을때 마커 표시 위치와 인포윈도우 내용을 설정합니다
+    
+    var locPosition = new kakao.maps.LatLng(35.9015, 128.8504),    
+        message = '위치 정보를 받아올 수 없습니다, 위치 정보 제공을 허용해주십시오.'
+        
+    displayMarker(locPosition, message);
+}
+
+// 지도에 마커와 인포윈도우를 표시하는 함수입니다
+function displayMarker(locPosition, message) {
+
+    // 마커를 생성합니다
+    var marker = new kakao.maps.Marker({  
+        map: map, 
+        position: locPosition
+    }); 
+    
+    var iwContent = message, // 인포윈도우에 표시할 내용
+        iwRemoveable = true;
+
+    // 인포윈도우를 생성합니다
+    var infowindow = new kakao.maps.InfoWindow({
+        content : iwContent,
+        removable : iwRemoveable
+    });
+    
+    // 인포윈도우를 마커위에 표시합니다 
+    infowindow.open(map, marker);
+    
+    // 지도 중심좌표를 접속위치로 변경합니다
+    map.setCenter(locPosition);      
+}
+} 
+</script>
+</body>
+</html>
